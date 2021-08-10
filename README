@@ -10,6 +10,7 @@ configs.py
 
 nifty_test_recommender.ipynb - full process of RnD on this project
 
+nifty_test_recommender_examples.pdf - exapmles of similar items recommendations for several randomly chosen art items
 
 
 ###   OUTPUT FILES   ###
