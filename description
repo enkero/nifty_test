@@ -1,0 +1,47 @@
+GENERAL DESCRIPTION.
+
+For now the recommender consists of 4 separate streams of recommendations which can be used separately or in blend. And there are 2 levels of recommendations: recommended items for users and similar items for each item.
+
+1. Tags based recommendations. Here I cleaned up the text a little bit and made several hand crafted categories consisting of frequently encountered related tags.
+List of tag categories: 3D, gif_video, painting, ML, AR_VR, cryptocurrency, black_white, color, psychedelic, space, abstract, future, sculpture, glitch, human.
+
+2. Description based recommendations. In "description" we are dealing not with key words but with plain text. To process it I apply pretrained BERT language model which represent the text theme and meaning in the form of embedding vectors. After we can find similar items by measuring the distance between these vectors.
+
+3. Tags based recommendations again but with BERT like above.
+
+4. Collaborative filtering based recommendations. Here I make use of bids and sales to build the model which predicts most relevant items for each user based on his and other users previous bids/sales by means of revealing item's and user's embeddings, i.e. vectors expressing latent themes. 
+
+
+
+RECOMMENDATIONS QUALITY.
+
+Usually the best way to properly test the recommender is to measure key metrics in production. All subsequent updates and scenario testing (like proportion of streams) are also measured online, and through applying A/B testing the best case is selected. 
+Retro testing on historical data is an appropriate way to get first understanding of recommender quality. As key metrics are usually chosen those related to error in rate prediction if an explicit rating system exist (not our case), recall-related like percent from top-k recommendations which user clicked (or did other target action), or recall and order related like NDCG which as well takes into account position of clicked item. Other business related metrics also can be used.
+
+As a metric I chose top-k accuracy since even for it values are generally small because of high data sparsity - buying a piece of art is a rare event compared to rating a movie or buying other goods. 
+
+For testing I put aside a validation dataset (30% of sales/bids), and train model where needed (basically it is only stream 3 - collaborative filtering) on another train data.
+If we randomly choose items, top-30 accuracy will be 0.04% for items from validation only. Collaborative filtering gives us 0.14%, tags - 1.8%, tags embeddings - 0.28% and description embeddings - 0.19%. Overlapping of predictions of these 3 streams are negligibly low, so we can combine them together to enrich diversity of output. Anyway it is better to see how they work in real life before choosing the best option.
+
+Not all streams available for each item. For about half of tokens collaborative recommendations are not available, for 16% not available tags recommendations, tags/description embeddings recommendations available almost for every token.
+
+Examples of recommendations from each stream you can see in nifty_test_recommender_examples.pdf.
+
+
+
+EXTENDING, SCALING, PRODUCTION.
+
+Tags based recommendations can be used straight away - they are fast and require no model training. Existing tag categories can be improved by further visual examination of existing tags or some insider knowledge.
+
+Description based recommendations also require no training and hence their quality does not depend on the amount of data. Although applying a pretrained model demands some amount of time, it is one time thing, and computed embedding can be saved/cached for further usage. Different pretrained language models can be tested here.
+
+Collaborative filtering based recommendations usually show the best result as a standalone approach. But in our case data is extremely sparse and the overall amount of data is not so big. Although it performs worse here than other approaches, sometimes it shows visually good suggestions. To improve it needed another more frequent type of data - like users clicking on items from logs. Users do not need to be logged in, any id.
+
+Since we are dealing with visual items, the most promising direction here is to add image recognition, visual features and image tagging as a new stream of recommendation. For this highly beneficial will be more arts tagged data - not necessarily relating to cryptoart (although it would be nice) but any contemporary art.
+
+Another improvement will be to build a ranking model which on top of all available features and embedding from all streams will order items according to its relevance and no compilation of different streams won't be needed anymore.
+
+For demonstration purposes I am not removing already buyed items for similar item recommendations, only for user recommendations I removed already buyed/bidded by him. Filtering by similar price can be further added, although at the moment not all prices are available.
+
+For production purposes all scripts providing recommendation should be shipped with API and probably inside a Docker container since some streams require a lot of installation and upgrading/downgrading of existing packages which may result in inconsistencies. To speed up API response some data (like embeddings) should be precomputed and stored locally. 
+

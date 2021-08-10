@@ -1,0 +1,23 @@
+###   CONTENT   ###
+
+tags_recs.py - make recommendations based on tags
+description_recs.py - make recommendations based on text embeddings for tags and description
+collaborative_recs.py - make recommendations based on collaborative filtering
+combine_preds.py - combine all recommendation streams together
+
+functions.py
+configs.py
+
+nifty_test_recommender.ipynb - full process of RnD on this project
+
+
+
+###   OUTPUT FILES   ###
+
+recs/user_recs.csv - user recommendations from each stream and their compilation
+recs/token_recs.csv - similar items to each item recommendations from each stream and their compilation
+
+
+###   ADDITIONAL FILES   ###
+
+Please download and put into models/ pretrained BERT model http://files.deeppavlov.ai/deeppavlov_data/bert/conversational_cased_L-12_H-768_A-12_pt.tar.gz
